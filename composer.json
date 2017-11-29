@@ -1,0 +1,26 @@
+{
+    "name": "kento-oka/roust",
+    "type": "library",
+    "description": "Roust is a faster URI router.",
+    "keywords": [
+        "router",
+        "uri"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kento Oka",
+            "email": "oka.kento0311@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.0"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "Roust\\": "src/"
+        }
+    }
+}
