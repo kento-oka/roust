@@ -1,6 +1,6 @@
 # Roust
 
-Roust is a faster URI router.
+Roust is the fastest (wishful) URI router.
 
 > *NOTE*: I cant speak engilish. so I used GoogleTranslate.
 
