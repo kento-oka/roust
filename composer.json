@@ -1,7 +1,7 @@
 {
     "name": "kento-oka/roust",
     "type": "library",
-    "description": "Roust is a faster URI router.",
+    "description": "Roust is the fastest (wishful) URI router",
     "keywords": [
         "router",
         "uri"
