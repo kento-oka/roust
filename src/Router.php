@@ -137,7 +137,7 @@ class Router{
         $records    = Parser::parse($this->prefix . $path);
         $node       = &$this->routes;
         $end        = [];
-        $i          = 1;
+        $i          = 0;
         
         foreach($records as $record){
             switch($record["type"] ?? self::ERR){
@@ -283,6 +283,7 @@ class Router{
 
             if(isset($node[self::REG])){
                 foreach($node[self::REG] as $reg => $next){
+                    echo PHP_EOL, "\$record\t: ", $record, PHP_EOL, "\$regex\t: ", "`\A$reg\z`", PHP_EOL;
                     if((bool)preg_match("`\A$reg\z`", $record)){
                         $node   = $next;
                         continue 2;

@@ -33,7 +33,7 @@ class Parser{
         $path   = strpos($path, "/") === 0 ? substr($path, 1) : $path;
         $return = [];
         $str    = "";
-        $i      = 1;
+        $i      = 0;
         
         foreach(str_split($path) as $char){
             if($char === "/"){
@@ -70,7 +70,7 @@ class Parser{
         $path   = strpos($path, "/") === 0 ? substr($path, 1) : $path;
         $return = [];
         $str    = "";
-        $i      = 1;
+        $i      = 0;
         
         foreach(str_split($path) as $char){
             if($char === "/"){
