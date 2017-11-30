@@ -83,7 +83,7 @@ class Parser{
         
         $return[$i] = $char === "/" ? "" : $str;
         
-        return $queue;
+        return $return;
     }
     
     /**
