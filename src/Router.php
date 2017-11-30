@@ -15,6 +15,7 @@ namespace Roust;
 
 /**
  * @todo    use cache.
+ * @todo    Separation common code (operate node) in addRoute.
  */
 class Router{
     
@@ -136,11 +137,10 @@ class Router{
         $records    = Parser::parse($this->prefix . $path);
         $node       = &$this->routes;
         $end        = [];
-
-        for($i = 1; !$records->isEmpty(); ++$i){
-            $record = $records->dequeue();
-
-            switch($record["type"]){
+        $i          = 1;
+        
+        foreach($records as $record){
+            switch($record["type"] ?? self::ERR){
                 case self::STR:
                     if(!isset($node[self::STR])){
                         $node[self::STR]    = [];
@@ -183,6 +183,8 @@ class Router{
                 default:
                     throw new \LogicException;
             }
+            
+            ++$i;
         }
 
         if(!isset($node[self::END])){
@@ -257,26 +259,22 @@ class Router{
      *      otherwise null will be returned.
      */
     public function search(string $method, string $path): Result{
-        $records    = Parser::rawParse($path);
+        $records    = Parser::splitSlash($path);
         $method     = strtoupper($method);
         $node       = $this->routes;
-        $uri        = [];
-        $i          = 0;
         
-        while(!$records->isEmpty()){
-            $uri[++$i]  = $records->dequeue();
-            
-            if(isset($node[self::STR][$uri[$i]])){
-                $node   = $node[self::STR][$uri[$i]];
+        foreach($records as &$record){
+            if(isset($node[self::STR][$record])){
+                $node   = $node[self::STR][$record];
                 continue;
             }
             
             if(isset($node[self::SREG])){
                 foreach($node[self::SREG] as $key => $next){
                     if(isset($this->shortRegex[$key])){
-                        if($this->shortRegex[$key]->match($uri[$i])){
-                            $uri[$i]    = $this->shortRegex[$key]->convert($uri[$i]);
-                            $node       = $next;
+                        if($this->shortRegex[$key]->match($record)){
+                            $record = $this->shortRegex[$key]->convert($record);
+                            $node   = $next;
                             continue 2;
                         }
                     }
@@ -285,7 +283,7 @@ class Router{
 
             if(isset($node[self::REG])){
                 foreach($node[self::REG] as $reg => $next){
-                    if((bool)preg_match("`\A$reg\z`", $uri[$i])){
+                    if((bool)preg_match("`\A$reg\z`", $record)){
                         $node   = $next;
                         continue 2;
                     }
@@ -299,9 +297,9 @@ class Router{
         if($node !== null){
             if(isset($node[self::END][$method])){
                 $params = array_map(
-                    function($v) use ($uri){
+                    function($v) use ($records){
                         if(is_int($v)){
-                            $v  = $uri[$v] ?? null;
+                            $v  = $records[$v] ?? null;
                         }
 
                         return $v;

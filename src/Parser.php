@@ -14,34 +14,33 @@
 namespace Roust;
 
 /**
- * パスをパースする。
  */
 class Parser{
     
     /**
-     * 正規表現を省略したパラメータを指定した場合に適用される正規表現。
+     * Regex applied to parameters without regex.
      */
     const STD_REG   = "([a-zA-Z0-9.-_~]|%[0-9a-f][0-9a-f]|[!$&-,:;=@])+";
     
     /**
-     * 正規表現などを含むパス定義をパースする。
+     * Parse URI definitions containing regex.
      * 
      * @param   string  $path
      * 
-     * @return  \SplQueue
+     * @return  array[]
      */
     public static function parse(string $path){
         $path   = strpos($path, "/") === 0 ? substr($path, 1) : $path;
-
-        $queue  = new \SplQueue();
+        $return = [];
         $str    = "";
+        $i      = 1;
         
-        foreach(preg_split("//u", $path, -1, PREG_SPLIT_NO_EMPTY) as $char){
+        foreach(str_split($path) as $char){
             if($char === "/"){
                 if(strpos($str, "{") === 0){
-                    $queue->enqueue(static::regRecord($str));
+                    $return[$i++]   = static::regRecord($str);
                 }else{
-                    $queue->enqueue(static::strRecord($str));
+                    $return[$i++]   = static::strRecord($str);
                 }
                 $str    = "";
             }else{
@@ -49,50 +48,46 @@ class Parser{
             }
         }
 
-        if(substr($path, strlen($path) - 1) === "/"){
-            $queue->enqueue(static::strRecord(""));
+        if($char === "/"){
+            $return[$i]   = static::strRecord("");
         }elseif(strpos($str, "{") === 0){
-            $queue->enqueue(static::regRecord($str));
+            $return[$i]   = static::regRecord($str);
         }else{
-            $queue->enqueue(static::strRecord($str));
+            $return[$i]   = static::strRecord($str);
         }
         
-        return $queue;
+        return $return;
     }
     
     /**
-     * リクエストURLパスをパースする。
+     * Parse the request URI.
      * 
      * @param   string  $path
      * 
-     * @return  \SplQueue
+     * @return  array[]
      */
-    public static function rawParse(string $path){
+    public static function splitSlash(string $path){
         $path   = strpos($path, "/") === 0 ? substr($path, 1) : $path;
-
-        $queue  = new \SplQueue();
+        $return = [];
         $str    = "";
+        $i      = 1;
         
-        foreach(preg_split("//u", $path, -1, PREG_SPLIT_NO_EMPTY) as $char){
+        foreach(str_split($path) as $char){
             if($char === "/"){
-                $queue->enqueue($str);
-                $str    = "";
+                $return[$i++]   = $str;
+                $str            = "";
             }else{
                 $str    = $str . $char;
             }
         }
-
-        if(substr($path, strlen($path) - 1) === "/"){
-            $queue->enqueue("");
-        }else{
-            $queue->enqueue($str);
-        }
+        
+        $return[$i] = $char === "/" ? "" : $str;
         
         return $queue;
     }
     
     /**
-     * 文字列レコードを生成する。
+     * Generate string record.
      * 
      * @param   string  $str
      * 
@@ -106,7 +101,7 @@ class Parser{
     }
     
     /**
-     * 正規表現レコードを生成する。
+     * Generate regex record.
      * 
      * @param   string  $str
      * 
