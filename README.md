@@ -144,7 +144,7 @@ and converts parameter to int type.
 ```php
 $router->addShortRegex("d", new \Roust\Sregex\NaturalNumber());
 
-$router->addroute("GET", "/users/{uid:`d}/", [
+$router->addroute("GET", "/users/{uid:|d}/", [
     "controller"    => "user",
     "action"        => "page"
 ]);
@@ -194,4 +194,15 @@ the second argument callback is executed.
 In `Router::makePAramsGroup()`, add parameters.
 This added parameters can be overwriten with `Router::addRoute()`.
 
+## Note
 
+```php
+$route->addShortRegex("d", new NaturalNumber());
+$router->get("/users/{id:[1-9][0-9]*}/", []);
+$router->get("/users/{id:|d}/profile/", []);
+
+$router->search("GET", "/users/123/");          // Not Found
+$router->search("GET", "/users/123/profile");   // Found
+```
+
+String > Short Regex > Regex
