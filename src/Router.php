@@ -14,8 +14,6 @@
 namespace Roust;
 
 /**
- * URIルーティングのメインクラス。
- * 
  * @todo    use cache.
  */
 class Router{
@@ -89,7 +87,7 @@ class Router{
     }
     
     /**
-     * Add new params group.
+     * Add new param group.
      * 
      * @param   string[]    $params
      *      Parameters array.

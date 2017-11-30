@@ -14,7 +14,6 @@
 namespace Roust;
 
 /**
- * ルーティングの結果を示すクラス。
  */
 class Result{
 
@@ -75,8 +74,6 @@ class Result{
     
     /**
      * Magic method for unknown property access.
-     * 
-     * @access  private
      */
     public function __get(string $key){
         if($this->result !== self::FOUND){
@@ -88,8 +85,6 @@ class Result{
 
     /**
      * Magic method for unknown property access.
-     * 
-     * @access  private
      */
     public function __isset(string $key){
         if($this->result !== self::FOUND){
@@ -100,7 +95,7 @@ class Result{
     }
     
     /**
-     * ルーティングの結果を返す。
+     * Return the result of routing.
      * 
      * @return  mixed
      */
@@ -109,7 +104,7 @@ class Result{
     }
     
     /**
-     * 一致したルーティングルールが許可するメソッド一覧
+     * List of HTTP methods allowed by matching routing tule.
      * 
      * @return  string[]
      */
@@ -118,7 +113,7 @@ class Result{
     }
     
     /**
-     * ルーティングルールで設定されたパラメータ一覧
+     * Parameters obtained from routing result.
      * 
      * @return  mixed[]
      */
