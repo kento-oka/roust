@@ -26,8 +26,8 @@
     },
     "scripts": {
         "test": [
-            "test/parser",
-            "test/router"
+            "composer test/parser",
+            "composer test/router"
         ],
         "test/parser": "phpunit tests/ParserTest",
         "test/router": "phpunit tests/RouterTest"
