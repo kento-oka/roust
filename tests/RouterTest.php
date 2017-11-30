@@ -39,7 +39,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase{
                     "action"    => "mypage"
                 ]);
 
-                $r->makePathGroup("/{uid:`d}", function($r){
+                $r->makePathGroup("/{uid:|d}", function($r){
                     $r->get("/", [
                         "controller" => "users",
                         "action"     => "index",
@@ -52,7 +52,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase{
             });
         });
         
-        $router->post("/users/{uid:`d}/profile/", [
+        $router->post("/users/{uid:|d}/profile/", [
             "controller"    => "user",
             "action"        => 2,
         ]);

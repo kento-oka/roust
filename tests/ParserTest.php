@@ -82,7 +82,7 @@ class ParserTest extends \PHPUnit\Framework\TestCase{
                 ]
             ],
             [
-                "abc/{id:`d}",
+                "abc/{id:|d}",
                 [
                     $this->record(Router::STR, "abc"),
                     $this->record(Router::SREG, "d", "id")

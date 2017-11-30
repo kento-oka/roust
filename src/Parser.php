@@ -120,7 +120,7 @@ class Parser{
         
         $reg    = $match["reg"] ?? self::STD_REG;
         
-        if((bool)preg_match("/\A`([a-z]+)\z/", $reg, $matchRegs)){
+        if((bool)preg_match("/\A\|([a-z]+)\z/", $reg, $matchRegs)){
             return [
                 "type"  => Router::SREG,
                 "val"   => $matchRegs[1],
