@@ -120,7 +120,7 @@ class Router{
      * 
      * @return  void
      */
-    public function addRoute(string $methods, string $path, array $params = []){
+    public function addRoute($methods, string $path, array $params = []){
         $methods    = array_unique(
             array_filter(
                 is_array($methods) ? $methods : [$methods],
@@ -204,7 +204,7 @@ class Router{
      * 
      * @return  void
      */
-    public function get(string $path, array $params){
+    public function get($path, array $params){
         $this->addRoute("GET", $path, $params);
     }
 
@@ -216,7 +216,7 @@ class Router{
      * 
      * @return  void
      */
-    public function post(string $path, array $params){
+    public function post($path, array $params){
         $this->addRoute("POST", $path, $params);
     }
 
@@ -228,7 +228,7 @@ class Router{
      * 
      * @return  void
      */
-    public function put(string $path, array $params){
+    public function put($path, array $params){
         $this->addRoute("PUT", $path, $params);
     }
 
@@ -240,7 +240,7 @@ class Router{
      * 
      * @return  void
      */
-    public function delete(string $path, array $params){
+    public function delete($path, array $params){
         $this->addRoute("DELETE", $path, $params);
     }
 
