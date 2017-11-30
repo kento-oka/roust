@@ -16,7 +16,7 @@ namespace Roust\SRegex;
 /**
  * 自然数に一致し、値をint型に変換する。
  */
-class NaturalNumber implements Roust\ShortRegexInterface{
+class NaturalNumber implements \Roust\ShortRegexInterface{
     
     /**
      * @inheritdoc
