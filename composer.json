@@ -25,6 +25,11 @@
         }
     },
     "scripts": {
-        "test": "phpunit tests/"
+        "test": [
+            "test/parser",
+            "test/router"
+        ],
+        "test/parser": "phpunit tests/ParserTest",
+        "test/router": "phpunit tests/RouterTest"
     }
 }
