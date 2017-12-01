@@ -15,15 +15,31 @@ namespace Roust;
 
 /**
  * @todo    use cache.
- * @todo    Separation common code (operate node) in addRoute.
  */
 class Router{
     
-    const STR   = "str";
-    const REG   = "reg";
-    const SREG  = "sreg";
-    const END   = "end";
-    const ERR   = "err";
+    const FOUND                 = "Found";
+    const NOT_FOUND             = "NotFound";
+    const METHOD_NOT_ALLOWED    = "MethodNotAllowed";
+    
+    const TYPE_STR  = "str";
+    const TYPE_REG  = "reg";
+    const TYPE_SREG = "sreg";
+    const TYPE_END  = "end";
+    const TYPE_ERR  = "err";
+    
+    const TYPECONF = [
+        self::TYPE_STR  => 1,       //  1: 子を持つノードとして指定できる
+        self::TYPE_REG  => 1 | 2,   //  2: パラメーターに登録する
+        self::TYPE_SREG => 1 | 2,
+        self::TYPE_END  => 16,
+        self::TYPE_ERR  => 0
+    ];
+    
+    /**
+     * Regex applied to parameters without regex.
+     */
+    const STD_REG   = "([a-zA-Z0-9.-_~]|%[0-9a-f][0-9a-f]|[!$&-,:;=@])+";
     
     /**
      * Routing tree.
@@ -120,7 +136,33 @@ class Router{
      * 
      * @return  void
      */
-    public function addRoute($methods, string $path, array $params = []){
+    public function addRoute($methods, string $path, array $params = []){        
+        $records    = self::parse($this->prefix . $path);
+        $node       = &$this->routes;
+        $end        = [];
+        $i          = 0;
+        
+        foreach($records as $record){
+            if(isset(self::TYPECONF[$record["type"]])
+                && (self::TYPECONF[$record["type"]] & 1)
+                && isset($record["val"])
+            ){
+                if(!isset($node[$record["type"]][$record["val"]])){
+                    $node[$record["type"]][$record["val"]]  = [];
+                }
+                
+                $node   = &$node[$record["type"]][$record["val"]];
+                
+                if((self::TYPECONF[$record["type"]] & 2) && isset($record["key"])){
+                    $end[$record["key"]]    = $i;
+                }
+                
+                ++$i;
+            }else{
+                throw new \UnexpectedValueException();
+            }
+        }
+        
         $methods    = array_unique(
             array_filter(
                 is_array($methods) ? $methods : [$methods],
@@ -130,69 +172,8 @@ class Router{
             )
         );
         
-        if(empty($methods)){
-            throw new \InvalidArguentException("");
-        }
-        
-        $records    = Parser::parse($this->prefix . $path);
-        $node       = &$this->routes;
-        $end        = [];
-        $i          = 0;
-        
-        foreach($records as $record){
-            switch($record["type"] ?? self::ERR){
-                case self::STR:
-                    if(!isset($node[self::STR])){
-                        $node[self::STR]    = [];
-                    }
-
-                    if(!isset($node[self::STR][$record["val"]])){
-                        $node[self::STR][$record["val"]]    = [];
-                    }
-
-                    $node   = &$node[self::STR][$record["val"]];
-
-                    break;
-                case self::SREG:
-                    if(!isset($node[self::SREG])){
-                        $node[self::SREG]   = [];
-                    }
-
-                    if(!isset($node[self::SREG][$record["val"]])){
-                        $node[self::SREG][$record["val"]]   = [];
-                    }
-
-                    $node   = &$node[self::SREG][$record["val"]];
-
-                    $end[$record["key"]]    = $i;
-                    break;
-                case self::REG:
-                    if(!isset($node[self::REG])){
-                        $node[self::REG]    = [];
-                    }
-
-                    if(!isset($node[self::REG][$record["val"]])){
-                        $node[self::REG][$record["val"]]    = [];
-                    }
-
-                    $node   = &$node[self::REG][$record["val"]];
-
-                    $end[$record["key"]]    = $i;
-                    break;
-                case self::ERR:
-                default:
-                    throw new \LogicException;
-            }
-            
-            ++$i;
-        }
-
-        if(!isset($node[self::END])){
-            $node[self::END]    = [];
-        }
-        
         foreach($methods as $method){
-            $node[self::END][strtoupper($method)]   = ($end + $params + $this->params);
+            $node[self::TYPE_END][strtoupper($method)]   = ($end + $params + $this->params);
         }
     }
     
@@ -204,7 +185,7 @@ class Router{
      * 
      * @return  void
      */
-    public function get($path, array $params){
+    public function get(string $path, array $params){
         $this->addRoute("GET", $path, $params);
     }
 
@@ -216,7 +197,7 @@ class Router{
      * 
      * @return  void
      */
-    public function post($path, array $params){
+    public function post(string $path, array $params){
         $this->addRoute("POST", $path, $params);
     }
 
@@ -228,7 +209,7 @@ class Router{
      * 
      * @return  void
      */
-    public function put($path, array $params){
+    public function put(string $path, array $params){
         $this->addRoute("PUT", $path, $params);
     }
 
@@ -240,7 +221,7 @@ class Router{
      * 
      * @return  void
      */
-    public function delete($path, array $params){
+    public function delete(string $path, array $params){
         $this->addRoute("DELETE", $path, $params);
     }
 
@@ -251,26 +232,22 @@ class Router{
      *      Request method.
      * @param   string  $path
      *      Request URI.
-     * 
-     * @throws  InvalidArgumentException
      *
-     * @return  string[]|null
-     *      If the routing is successful, the parameter list will be returned,
-     *      otherwise null will be returned.
+     * @return  mixed[]
      */
-    public function search(string $method, string $path): Result{
-        $records    = Parser::splitSlash($path);
+    public function search(string $method, string $path){
+        $records    = self::splitSlash($path);
         $method     = strtoupper($method);
         $node       = $this->routes;
         
         foreach($records as &$record){
-            if(isset($node[self::STR][$record])){
-                $node   = $node[self::STR][$record];
+            if(isset($node[self::TYPE_STR][$record])){
+                $node   = $node[self::TYPE_STR][$record];
                 continue;
             }
             
-            if(isset($node[self::SREG])){
-                foreach($node[self::SREG] as $key => $next){
+            if(isset($node[self::TYPE_SREG])){
+                foreach($node[self::TYPE_SREG] as $key => $next){
                     if(isset($this->shortRegex[$key])){
                         if($this->shortRegex[$key]->match($record)){
                             $record = $this->shortRegex[$key]->convert($record);
@@ -281,8 +258,8 @@ class Router{
                 }
             }
 
-            if(isset($node[self::REG])){
-                foreach($node[self::REG] as $reg => $next){
+            if(isset($node[self::TYPE_REG])){
+                foreach($node[self::TYPE_REG] as $reg => $next){
                     if((bool)preg_match("`\A$reg\z`", $record)){
                         $node   = $next;
                         continue 2;
@@ -295,7 +272,7 @@ class Router{
         }
         
         if($node !== null){
-            if(isset($node[self::END][$method])){
+            if(isset($node[self::TYPE_END][$method])){
                 $params = array_map(
                     function($v) use ($records){
                         if(is_int($v)){
@@ -304,15 +281,143 @@ class Router{
 
                         return $v;
                     },
-                    $node[self::END][$method]
+                    $node[self::TYPE_END][$method]
                 );
 
-                return new Result(Result::FOUND, array_keys($node[self::END]), $params);
-            }else if(isset($node[self::END]) && count($node[self::END] > 0)){
-                return new Result(Result::METHOD_NOT_ALLOWED, array_keys($node[self::END]));
+                return $this->generateResult(Router::FOUND, array_keys($node[self::TYPE_END]), $params);
+            }else if(isset($node[self::TYPE_END]) && count($node[self::TYPE_END] > 0)){
+                return $this->generateResult(Router::METHOD_NOT_ALLOWED, array_keys($node[self::TYPE_END]));
             }
         }
         
-        return new Result(Result::NOT_FOUND);
+        return $this->generateResult(Router::NOT_FOUND);
+    }
+    
+    /**
+     * Create routing result array.
+     * 
+     * @param   mixed   $result
+     *      Router::FOUND, Router::NOT_FOUND or Router::METHOD_NOT_ALLOWED
+     * @param   string  $allowed
+     *      Allowed method list.
+     * @param   mixed   $params
+     *      Routing parameters.
+     * 
+     * @return  mixed[]
+     */
+    protected function generateResult($result = self::NOT_FOUND, array $allowed = [], array $params = []){
+        return [
+            "result"    => $result,
+            "allowed"   => $allowed,
+            "params"    => $params
+        ];
+    }
+    
+    /**
+     * Parse URI definitions containing regex.
+     * 
+     * @param   string  $path
+     * 
+     * @return  array[]
+     */
+    public static function parse(string $path){
+        $path   = strpos($path, "/") === 0 ? substr($path, 1) : $path;
+        $return = [];
+        $str    = "";
+        $i      = 0;
+        
+        foreach(str_split($path) as $char){
+            if($char === "/"){
+                if(strpos($str, "{") === 0){
+                    $return[$i++]   = static::regRecord($str);
+                }else{
+                    $return[$i++]   = static::strRecord($str);
+                }
+                $str    = "";
+            }else{
+                $str    = $str . $char;
+            }
+        }
+
+        if(strpos($str, "{") === 0){
+            $return[$i]   = static::regRecord($str);
+        }else{
+            $return[$i]   = static::strRecord($str);
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * Parse the request URI.
+     * 
+     * @param   string  $path
+     * 
+     * @return  array[]
+     */
+    public static function splitSlash(string $path){
+        $path   = strpos($path, "/") === 0 ? substr($path, 1) : $path;
+        $return = [];
+        $str    = "";
+        $i      = 0;
+        
+        foreach(str_split($path) as $char){
+            if($char === "/"){
+                $return[$i++]   = $str;
+                $str            = "";
+            }else{
+                $str    = $str . $char;
+            }
+        }
+        
+        $return[$i] = $char === "/" ? "" : $str;
+        
+        return $return;
+    }
+    
+    /**
+     * Generate string record.
+     * 
+     * @param   string  $str
+     * 
+     * @return  mixed[]
+     */
+    protected static function strRecord(string $str){
+        return [
+            "type"  => Router::TYPE_STR,
+            "val"   => $str
+        ];
+    }
+    
+    /**
+     * Generate regex record.
+     * 
+     * @param   string  $str
+     * 
+     * @return  mixed[]
+     */
+    protected static function regRecord(string $str){
+        if(!(bool)preg_match(
+            "/\A\{(?<key>[a-zA-Z_][a-zA-Z0-9_]*)(?::(?<reg>.+?))?\}\z/",
+            $str, $match)
+        ){
+            throw new \InvalidArgumentException();
+        }
+        
+        $reg    = $match["reg"] ?? self::STD_REG;
+        
+        if((bool)preg_match("/\A\|([a-z]+)\z/", $reg, $matchRegs)){
+            return [
+                "type"  => Router::TYPE_SREG,
+                "val"   => $matchRegs[1],
+                "key"   => $match["key"]
+            ];
+        }else{
+            return [
+                "type"  => Router::TYPE_REG,
+                "val"   => $reg,
+                "key"   => $match["key"]
+            ];
+        }
     }
 }

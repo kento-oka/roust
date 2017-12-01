@@ -9,7 +9,7 @@ Roust is the fastest (wishful) URI router.
 Before using Roust in your project, execute it command in your project:
 
 ``` bash
-$ composer require 'kento-oka/roust:^1.0'
+$ composer require 'kento-oka/roust'
 ```
 
 ## Usage
@@ -26,7 +26,6 @@ $router = new Router();
 
 ```php
 use Roust\Router;
-use Roust\Result;
 use Request;    //  Implemented Psr\Http\Message\ServerRequestInterface
 
 $router     = new Router();
@@ -58,16 +57,16 @@ $router->addRoute("GET", "/users/{uid:[1-9][0-9]*}/", [
 
 $result = $router->search($request->getMethod(), $request->getUri()->getPath());
 
-switch($result->getResult()){
-    case Result::NOT_FOUND:
+switch($result["result"]){
+    case Router::NOT_FOUND:
         // ... 404 Not Found
         break;
-    case Result:METHOD_NOT_ALLOWED:
-        $allowedMethods = $result->getAllowed();
+    case Router:METHOD_NOT_ALLOWED:
+        $allowedMethods = $result["allowed"];
         // ... 405 Method Not Allowed
         break;
-    case Result::FOUND:
-        $params = $result->getParams();
+    case Router::FOUND:
+        $params = $resul["params"];
         //  Do something
         break;
 }

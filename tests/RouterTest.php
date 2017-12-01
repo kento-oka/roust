@@ -13,8 +13,6 @@
  */
 
 use Roust\Router;
-use Roust\Parser;
-use Roust\Result;
 
 /**
  *
@@ -64,38 +62,38 @@ class RouterTest extends \PHPUnit\Framework\TestCase{
      * @dataProvider resultDataProvider
      */
     public function testRoutingResult($method, $path, $expected){
-        $this->assertEquals($expected, $this->router->search($method, $path)->getResult());
+        $this->assertEquals($expected, $this->router->search($method, $path)["result"]);
     }
     
     /**
      * @dataProvider allowedDataProvider
      */
     public function testRoutingAllowed($method, $path, $expected){
-        $this->assertEquals($expected, $this->router->search($method, $path)->getAllowed());
+        $this->assertEquals($expected, $this->router->search($method, $path)["allowed"]);
     }
     
     /**
      * @dataProvider paramsDataProvider
      */
     public function testRoutingPArams($method, $path, $expected){
-        $this->assertEquals($expected, $this->router->search($method, $path)->getParams());
+        $this->assertEquals($expected, $this->router->search($method, $path)["params"]);
     }
     
     
     public function resultDataProvider(){
         return [
-            ["GET", "/", Result::FOUND],
-            ["GET", "", Result::FOUND],
-            ["GET", "/users/my/", Result::FOUND],
-            ["GET", "users/123/", Result::FOUND],
-            ["GET", "users/123/3/", Result::FOUND],
-            ["POST", "/users/456/profile/", Result::FOUND],
-            ["POST", "/", Result::METHOD_NOT_ALLOWED],
-            ["GET", "/users/789/profile/", Result::METHOD_NOT_ALLOWED],
-            ["GET", "/users/0123", Result::NOT_FOUND],
-            ["GET", "users/123/1c/", Result::NOT_FOUND],
-            ["GET", "users", Result::NOT_FOUND],
-            ["GET", "users/456/profile", Result::NOT_FOUND],
+            ["GET", "/", Router::FOUND],
+            ["GET", "", Router::FOUND],
+            ["GET", "/users/my/", Router::FOUND],
+            ["GET", "users/123/", Router::FOUND],
+            ["GET", "users/123/3/", Router::FOUND],
+            ["POST", "/users/456/profile/", Router::FOUND],
+            ["POST", "/", Router::METHOD_NOT_ALLOWED],
+            ["GET", "/users/789/profile/", Router::METHOD_NOT_ALLOWED],
+            ["GET", "/users/0123", Router::NOT_FOUND],
+            ["GET", "users/123/1c/", Router::NOT_FOUND],
+            ["GET", "users", Router::NOT_FOUND],
+            ["GET", "users/456/profile", Router::NOT_FOUND],
         ];
     }
     

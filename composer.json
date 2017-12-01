@@ -25,11 +25,6 @@
         }
     },
     "scripts": {
-        "test": [
-            "composer test/parser",
-            "composer test/router"
-        ],
-        "test/parser": "phpunit tests/ParserTest",
-        "test/router": "phpunit tests/RouterTest"
+        "test": "@phpunit tests/"
     }
 }
