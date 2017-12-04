@@ -2,7 +2,9 @@
 
 Roust is the fastest (wishful) URI router.
 
-> *NOTE*: I cant speak engilish. so I used GoogleTranslate.
+> *NOTE*:  
+> I cant speak engilish. so I used GoogleTranslate.  
+> The exact REDME is in README_origin.
 
 ## Install
 
@@ -137,8 +139,7 @@ it is useful if it can be converted to IPv4 at the routing stage.
 
 Short regex that makes it possible.
 
-Consider short regex which matches only natural number
-and converts parameter to int type.
+It is short regex that matches only natural numbers and convert to int type:
 
 ```php
 $router->addShortRegex("d", new \Roust\Sregex\NaturalNumber());
@@ -190,7 +191,7 @@ $router->makePathGroup("/users", function($r){
 beginning of the URI of the rule added with `Router::addRoute()` only while
 the second argument callback is executed.
 
-In `Router::makePAramsGroup()`, add parameters.
+In `Router::makeParamsGroup()`, add parameters.
 This added parameters can be overwriten with `Router::addRoute()`.
 
 ## Note
