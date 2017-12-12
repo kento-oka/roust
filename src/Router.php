@@ -143,23 +143,23 @@ class Router{
         $i          = 0;
         
         foreach($records as $record){
-            if(isset(self::TYPECONF[$record["type"]])
-                && (self::TYPECONF[$record["type"]] & 1)
-                && isset($record["val"])
+            if(isset(self::TYPECONF[$record[0]])
+                && (self::TYPECONF[$record[0]] & 1)
+                && isset($record[1])
             ){
-                if(!isset($node[$record["type"]][$record["val"]])){
-                    $node[$record["type"]][$record["val"]]  = [];
+                if(!isset($node[$record[0]][$record[1]])){
+                    $node[$record[0]][$record[1]]  = [];
                 }
                 
-                $node   = &$node[$record["type"]][$record["val"]];
+                $node   = &$node[$record[0]][$record[1]];
                 
-                if((self::TYPECONF[$record["type"]] & 2) && isset($record["key"])){
-                    $end[$record["key"]]    = $i;
+                if((self::TYPECONF[$record[0]] & 2) && isset($record[2])){
+                    $end[$record[2]]    = $i;
                 }
                 
                 ++$i;
             }else{
-                throw new \UnexpectedValueException();
+                throw new \LogicException();
             }
         }
         
@@ -224,7 +224,7 @@ class Router{
     public function delete(string $path, array $params){
         $this->addRoute("DELETE", $path, $params);
     }
-
+    
     /**
      * Search for routing rules that match the request URI.
      *
@@ -383,10 +383,7 @@ class Router{
      * @return  mixed[]
      */
     protected static function strRecord(string $str){
-        return [
-            "type"  => Router::TYPE_STR,
-            "val"   => $str
-        ];
+        return [Router::TYPE_STR, $str];
     }
     
     /**
@@ -398,26 +395,24 @@ class Router{
      */
     protected static function regRecord(string $str){
         if(!(bool)preg_match(
-            "/\A\{(?<key>[a-zA-Z_][a-zA-Z0-9_]*)(?::(?<reg>.+?))?\}\z/",
+            "/\A\{(?<key>[a-zA-Z_][a-zA-Z0-9_]*)(?::(?<reg>\|[a-zA-Z_][a-zA-Z0-9_]*|[^|].*?))?\}\z/",
             $str, $match)
         ){
-            throw new \InvalidArgumentException();
+            throw new \InvalidArgumentException("\"$str\" is not regex block.");
         }
         
-        $reg    = $match["reg"] ?? self::STD_REG;
-        
-        if((bool)preg_match("/\A\|([a-z]+)\z/", $reg, $matchRegs)){
+        if(isset($match["reg"]) && strpos($match["reg"], "|") === 0){
             return [
-                "type"  => Router::TYPE_SREG,
-                "val"   => $matchRegs[1],
-                "key"   => $match["key"]
-            ];
-        }else{
-            return [
-                "type"  => Router::TYPE_REG,
-                "val"   => $reg,
-                "key"   => $match["key"]
+                Router::TYPE_SREG,
+                substr($match["reg"], 1, strlen($match["reg"]) - 1),
+                $match["key"]
             ];
         }
+
+        return [
+            Router::TYPE_REG,
+            $match["reg"] ?? self::STD_REG,
+            $match["key"]
+        ];
     }
 }
