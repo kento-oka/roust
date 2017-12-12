@@ -26,6 +26,9 @@ class RouterTest extends \PHPUnit\Framework\TestCase{
         
         $router->addShortRegex("d", new Roust\SRegex\NaturalNumber());
         
+        $router->addRoute("GET", "multi/method/", []);
+        $router->addRoute("HEAD", "multi/method/", []);
+        
         $router->addRoute(["GET", "HEAD"], "", [
             "controller"    => "index",
             "action"        => "index"
@@ -75,8 +78,13 @@ class RouterTest extends \PHPUnit\Framework\TestCase{
     /**
      * @dataProvider paramsDataProvider
      */
-    public function testRoutingPArams($method, $path, $expected){
+    public function testRoutingParams($method, $path, $expected){
         $this->assertEquals($expected, $this->router->search($method, $path)["params"]);
+    }
+    
+    public function testMultiMethod(){
+        $result = $this->router->search("GET", "/multi/method/");
+        $this->assertEquals(["GET", "HEAD"], $result["allowed"]);
     }
     
     
