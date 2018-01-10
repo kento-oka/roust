@@ -1,5 +1,9 @@
 # Roust
 
+> *CAUTION*:  
+> This library has moved to [fratily/router](https://github.com/fratily/router).
+> From now on plz use that.
+
 Roust is the fastest (wishful) URI router.
 
 > *NOTE*:  

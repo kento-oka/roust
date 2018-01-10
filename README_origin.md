@@ -1,5 +1,9 @@
 # Roust
 
+> *注意*  
+> このライブラリは[fratily/router](https://github/fratily/router)に移動しました。
+> 今後はそちらをご利用ください。
+
 Roustは最も速い(そうであってほしい)URIルーターです。
 
 ## インストール
